@@ -47,3 +47,26 @@ test("Adding a clause using IS and LIKE", () => {
 
     expect(dynamicWhere.getClauses()).toBe(" WHERE deleted IS NOT NULL AND name LIKE \"%Jacob%\"");
 });
+
+test("Test for correct OR logic", () => {
+    dynamicWhere.clear();
+    dynamicWhere.add(sdw.Logic.And, "name", sdw.Comparison.Equals, "Jacob");
+    dynamicWhere.add(sdw.Logic.And, "age", sdw.Comparison.LessThan, 25);
+    dynamicWhere.add(sdw.Logic.Or, "age", sdw.Comparison.GreaterThan, 50);
+    dynamicWhere.add(sdw.Logic.And, "hasParents", sdw.Comparison.IsNotNull, true);
+
+    expect(dynamicWhere.getClauses()).toBe(" WHERE name = \"Jacob\" AND (age < 25 OR age > 50) AND hasParents IS NOT NULL");
+});
+
+test("Test for correct complex OR logic", () => {
+    dynamicWhere.clear();
+    dynamicWhere.add(sdw.Logic.And, "name", sdw.Comparison.Equals, "Jacob");
+    dynamicWhere.add(sdw.Logic.And, "age", sdw.Comparison.LessThan, 25);
+    dynamicWhere.add(sdw.Logic.Or, "age", sdw.Comparison.GreaterThan, 50);
+    dynamicWhere.add(sdw.Logic.And, "hasParents", sdw.Comparison.IsNotNull, true);
+    dynamicWhere.add(sdw.Logic.And, "friend", sdw.Comparison.Equals, "Luke");
+    dynamicWhere.add(sdw.Logic.Or, "friend", sdw.Comparison.Equals, "Leia");
+    dynamicWhere.add(sdw.Logic.Or, "friend", sdw.Comparison.Like, "%James%");
+
+    expect(dynamicWhere.getClauses()).toBe(" WHERE name = \"Jacob\" AND (age < 25 OR age > 50) AND hasParents IS NOT NULL AND (friend = \"Luke\" OR friend = \"Leia\" OR friend LIKE \"%James%\")");
+});

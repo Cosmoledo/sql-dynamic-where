@@ -36,6 +36,7 @@
   },
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test-watch": "npm run test -- --watch",
     "ts": "tsc -w"
   },
   "type": "module",

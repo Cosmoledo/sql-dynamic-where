@@ -98,11 +98,10 @@ Generating WHERE clauses using IS and Like
 dynamicWhere.clear();
 
 // Add where clauses
-dynamicWhere.add(sdw.Logic.Or, 'deleted', sdw.Comparison.IsNotNull, true);
-dynamicWhere.add(sdw.Logic.Or, 'canFly', sdw.Comparison.IsNull, false);
+dynamicWhere.add(sdw.Logic.And, 'deleted', sdw.Comparison.IsNotNull, true);
+dynamicWhere.add(sdw.Logic.And, 'canFly', sdw.Comparison.IsNull, undefined);
 dynamicWhere.add(sdw.Logic.And, 'name', sdw.Comparison.Like, "%Jacob%");
 
-// Notice that false is being passed into this function
 // Returns: WHERE deleted IS NOT NULL AND name LIKE "%Jacob%"
 dynamicWhere.getClauses()
 ```

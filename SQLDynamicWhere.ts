@@ -1,18 +1,18 @@
 enum Comparison {
     DoesNotEqual = "!=",
-        Equals = "=",
-        GreaterThan = ">",
-        GreaterThanOrEqual = ">=",
-        IsNotNull = "IS NOT NULL",
-        IsNull = "IS NULL",
-        LessThan = "<",
-        LessThanOrEqual = "<=",
-        Like = "LIKE",
+    Equals = "=",
+    GreaterThan = ">",
+    GreaterThanOrEqual = ">=",
+    IsNotNull = "IS NOT NULL",
+    IsNull = "IS NULL",
+    LessThan = "<",
+    LessThanOrEqual = "<=",
+    Like = "LIKE",
 };
 
 enum Logic {
     And = "AND",
-        Or = "OR",
+    Or = "OR",
 };
 
 type Value = string | number | boolean | null | undefined;
@@ -50,7 +50,7 @@ export default class SQLDynamicWhere {
      * @param {Value[]} skipValues - (Optional) An array of values that should be considered as null
      */
     public addFirst(field: string, comparisonOperator: Comparison, value: Value, skipValues: Value[] = []): void {
-        this.add(SQLDynamicWhere.Logic.And, field, comparisonOperator, value, skipValues);
+        this.add(Logic.And, field, comparisonOperator, value, skipValues);
     }
 
     /**
@@ -104,16 +104,27 @@ export default class SQLDynamicWhere {
 
         // Add clauses
         this.clauses.forEach((clause, index) => {
+            // We also need to insert brackets around OR statements
+            const nextClause = this.clauses[index + 1];
+
             // Skip logical operator on the first clause
             if (index > 0 || !startNewWhere)
                 clauses += ` ${clause.logicalOperator}`;
 
-            clauses += ` ${clause.field} ${clause.comparisonOperator}`;
+            if (clause.logicalOperator === Logic.And && nextClause && nextClause.logicalOperator === Logic.Or)
+                clauses += " (";
+            else
+                clauses += " ";
+
+            clauses += `${clause.field} ${clause.comparisonOperator}`;
 
             if (typeof (placeholder) === "string")
                 clauses += this.getValue(clause.comparisonOperator, placeholder, true);
             else
                 clauses += this.getValue(clause.comparisonOperator, clause.value);
+
+            if (clause.logicalOperator === Logic.Or && (nextClause ? nextClause.logicalOperator === Logic.And : true))
+                clauses += ")";
         });
 
         return clauses;
