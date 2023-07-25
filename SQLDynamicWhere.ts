@@ -3,6 +3,7 @@ enum Comparison {
     Equals = "=",
     GreaterThan = ">",
     GreaterThanOrEqual = ">=",
+    In = "IN",
     IsNotNull = "IS NOT NULL",
     IsNull = "IS NULL",
     LessThan = "<",
@@ -15,13 +16,14 @@ enum Logic {
     Or = "OR",
 };
 
-type Value = string | number | boolean | null | undefined;
+type ValueRaw = string | number | boolean | null | undefined;
+type Value = ValueRaw | ValueRaw[];
 
 interface Clause {
     comparisonOperator: Comparison;
     field: string;
     logicalOperator: Logic;
-    skipValues: Value[];
+    skipValues: ValueRaw[];
     value: Value;
 }
 
@@ -47,9 +49,9 @@ export default class SQLDynamicWhere {
      * @param {string} field - The table field
      * @param {Comparison} comparisonOperator - The comparison operator of the where clause
      * @param {Value} value - The value to compare against
-     * @param {Value[]} skipValues - (Optional) An array of values that should be considered as null
+     * @param {ValueRaw[]} skipValues - (Optional) An array of values that should be considered as null
      */
-    public addFirst(field: string, comparisonOperator: Comparison, value: Value, skipValues: Value[] = []): void {
+    public addFirst(field: string, comparisonOperator: Comparison, value: Value, skipValues: ValueRaw[] = []): void {
         this.add(Logic.And, field, comparisonOperator, value, skipValues);
     }
 
@@ -60,11 +62,19 @@ export default class SQLDynamicWhere {
      * @param {string} field - The table field
      * @param {Comparison} comparisonOperator - The comparison operator of the where clause
      * @param {Value} value - The value to compare against
-     * @param {Value[]} skipValues - (Optional) An array of values that should be considered as null
+     * @param {ValueRaw[]} skipValues - (Optional) An array of values that should be considered as null
      */
-    public add(logicalOperator: Logic, field: string, comparisonOperator: Comparison, value: Value, skipValues: Value[] = []): void {
+    public add(logicalOperator: Logic, field: string, comparisonOperator: Comparison, value: Value, skipValues: ValueRaw[] = []): void {
         // If there is no value or it is "null" then do not add it to the array
-        if (value === null || typeof (value) === "undefined" || skipValues.includes(value))
+        if (value === null || typeof (value) === "undefined")
+            return;
+
+        // Also skip if value is considered as null
+        if (Array.isArray(value)) {
+            value = value.filter(val => !skipValues.includes(val));
+            if (value.length === 0)
+                return;
+        } else if (skipValues.includes(value))
             return;
 
         // Store clause
@@ -153,9 +163,12 @@ export default class SQLDynamicWhere {
      * @param {Value} value - The value to compare against
      * @param {boolean} isPlaceholder - Indicates if the value is used for a query with placeholders
      */
-    private getValue(comparisonOperator: Comparison, value: Value, isPlaceholder: boolean = false): string {
+    private getValue(comparisonOperator: Comparison, value: Value | Value[], isPlaceholder: boolean = false): string {
         if ([Comparison.IsNull, Comparison.IsNotNull].includes(comparisonOperator))
             return "";
+
+        if (comparisonOperator === Comparison.In && Array.isArray(value))
+            return " (" + value.map(val => this.getValue(comparisonOperator, val, isPlaceholder)).join(",").slice(1) + ")";
 
         if (isPlaceholder)
             return ` ${value}`;

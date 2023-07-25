@@ -39,6 +39,34 @@ test("Adding a clause using IS", () => {
     expect(dynamicWhere.getValues().length).toBe(1);
 });
 
+test("Adding a clause using IN", () => {
+    dynamicWhere.clear();
+    dynamicWhere.add(sdw.Logic.And, "friends", sdw.Comparison.In, ["Luke", "Leia", "James"]);
+
+    expect(dynamicWhere.getClauses()).toBe(" WHERE friends IN (\"Luke\", \"Leia\", \"James\")");
+});
+
+test("Adding a clause using IN placeholder", () => {
+    dynamicWhere.clear();
+    dynamicWhere.add(sdw.Logic.And, "friends", sdw.Comparison.In, ["Luke", "Leia", "James"]);
+
+    expect(dynamicWhere.getClausesWithValuePlaceholders()).toBe(" WHERE friends IN (?)");
+});
+
+test("Adding a clause using IN with skip", () => {
+    dynamicWhere.clear();
+    dynamicWhere.add(sdw.Logic.And, "friends", sdw.Comparison.In, ["Luke", "Leia", "James"], ["Leia"]);
+
+    expect(dynamicWhere.getClauses()).toBe(" WHERE friends IN (\"Luke\", \"James\")");
+});
+
+test("Adding a empty clause using IN", () => {
+    dynamicWhere.clear();
+    dynamicWhere.add(sdw.Logic.And, "friends", sdw.Comparison.In, ["Leia"], ["Leia"]);
+
+    expect(dynamicWhere.getClauses()).toBe(" WHERE");
+});
+
 test("Adding a clause using IS and LIKE", () => {
     dynamicWhere.clear();
     dynamicWhere.add(sdw.Logic.And, "deleted", sdw.Comparison.IsNotNull, true);
