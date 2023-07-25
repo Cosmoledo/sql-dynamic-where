@@ -1,14 +1,16 @@
 {
-  "name": "sql-dynamic-where",
-  "version": "1.2.1",
-  "description": "Dynamically handle multiple WHERE SQL statements",
-  "main": "SQLDynamicWhere.js",
-  "scripts": {
-    "test": "jest"
+  "author": "Jacob Carlson <imjncarlson@gmail.com> (https://github.com/imjncarlson)",
+  "bugs": {
+    "url": "https://github.com/imjncarlson/sql-dynamic-where/issues"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/imjncarlson/sql-dynamic-where"
+  "description": "Dynamically handle multiple WHERE SQL statements",
+  "devDependencies": {
+    "jest": "^29.6.1",
+    "typescript": "^5.1.6"
+  },
+  "homepage": "https://github.com/imjncarlson/sql-dynamic-where#readme",
+  "jest": {
+    "transform": {}
   },
   "keywords": [
     "SQL",
@@ -25,14 +27,17 @@
     "utility",
     "string"
   ],
-  "author": "Jacob Carlson <imjncarlson@gmail.com> (https://github.com/imjncarlson)",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/imjncarlson/sql-dynamic-where/issues"
+  "main": "SQLDynamicWhere.js",
+  "name": "sql-dynamic-where",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imjncarlson/sql-dynamic-where"
   },
-  "homepage": "https://github.com/imjncarlson/sql-dynamic-where#readme",
-  "devDependencies": {
-    "jest": "^29.6.1",
-    "typescript": "^5.1.6"
-  }
+  "scripts": {
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "ts": "tsc -w"
+  },
+  "type": "module",
+  "version": "1.2.1"
 }
