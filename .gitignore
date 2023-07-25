@@ -5,10 +5,7 @@
 
 .env*
 *.css
-*.js
 *.js.map
-
-!tests/**/*.*
 
 # Node artifact files
 node_modules/

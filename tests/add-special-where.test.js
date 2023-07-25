@@ -25,7 +25,7 @@ test("Adding a clause using LIKE with wildcards", () => {
 
 test("Adding a empty clause using IS", () => {
     dynamicWhere.clear();
-    dynamicWhere.add(sdw.Logic.And, "name", sdw.Comparison.IsNull, null);
+    dynamicWhere.add(sdw.Logic.And, "name", sdw.Comparison.IsNull, false);
 
     expect(dynamicWhere.getClausesArray().length).toBe(0);
     expect(dynamicWhere.getValues().length).toBe(0);
