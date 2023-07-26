@@ -8,7 +8,7 @@
 
 Dynamically handle multiple WHERE clauses in your SQL statements.
 This package makes it easier to pass in query parameters from an endpoint into your SQL query string.
-If a value in any of the WHERE statements is undefined it will be skipped in the clauses string.
+If the value is undefined/null/_falsy_ it will not be added to the clauses string.
 
 ## Changes
 
@@ -20,10 +20,12 @@ Changes to original [imjncarlson/sql-dynamic-where](https://github.com/imjncarls
   - Logic may be broken without
 - Removed/Renamed internal variables
   - Example: `whereClauses` and `values` were combined into `clauses`
-  - Example: renamed parameter `leadingLogicalOperator` to `startNewWhere`
-- **!** Logic of boolean `leadingLogicalOperator`/`startNewWhere` was flipped
-
-API/Functions call + parameters stayed mostly intact
+  - Example: renamed parameter `leadingLogicalOperator` to `startWithWhere`
+- _Heavily_ changed API / function calls
+  - Logic of parameter `leadingLogicalOperator`/`startWithWhere` was flipped
+  - Renamed `addFirst` to `and`, also added `or`
+  - Renamed `add` to `addClause`
+  - Added function chaining
 
 TODO/IDEAS:
 
@@ -41,8 +43,8 @@ npm i sql-dynamic-where
 Adding sql-dynamic-where to a script
 
 ```js
-// const sdw = require('sql-dynamic-where')
-import sdw from 'SQLDynamicWhere';
+// const sdw = require("sql-dynamic-where")
+import sdw from "SQLDynamicWhere";
 const dynamicWhere = new sdw();
 ```
 
@@ -55,11 +57,12 @@ Generating WHERE clauses with multiple variables
 dynamicWhere.clear();
 
 // Add where clauses
-dynamicWhere.addFirst('name', sdw.Comparison.Equals, 'Jacob');
-dynamicWhere.add(sdw.Logic.And, 'age', sdw.Comparison.LessThan, 50);
-dynamicWhere.add(sdw.Logic.Or, 'eyes', sdw.Comparison.DoesNotEqual, 'blue');
+dynamicWhere
+  .and("name", sdw.Comparison.Equals, "Jacob")
+  .and("age", sdw.Comparison.LessThan, 50)
+  .or("eyes", sdw.Comparison.DoesNotEqual, "blue");
 
-// Returns: WHERE name = 'Jacob' AND (age < 50 OR eyes != 'blue')
+// Returns: WHERE name = "Jacob" AND (age < 50 OR eyes != "blue")
 dynamicWhere.getClauses()
 ```
 
@@ -70,11 +73,12 @@ Generating WHERE clauses with multiple variables, some undefined
 dynamicWhere.clear();
 
 // Add where clauses
-dynamicWhere.addFirst('name', sdw.Comparison.Equals, 'Jacob');
-dynamicWhere.add(sdw.Logic.And, 'age', sdw.Comparison.LessThan, undefined);
-dynamicWhere.add(sdw.Logic.Or, 'eyes', sdw.Comparison.DoesNotEqual, 'blue');
+dynamicWhere
+  .and("name", sdw.Comparison.Equals, "Jacob")
+  .and("age", sdw.Comparison.LessThan, undefined)
+  .or("eyes", sdw.Comparison.DoesNotEqual, "blue");
 
-// Returns: WHERE (name = 'Jacob' OR eyes != 'blue')
+// Returns: WHERE (name = "Jacob" OR eyes != "blue")
 dynamicWhere.getClauses()
 ```
 
@@ -85,11 +89,12 @@ Generating WHERE clauses with a placeholder string for the values
 dynamicWhere.clear();
 
 // Add where clauses
-dynamicWhere.addFirst('name', sdw.Comparison.Equals, 'Jacob');
-dynamicWhere.add(sdw.Logic.And, 'age', sdw.Comparison.LessThan, 50);
-dynamicWhere.add(sdw.Logic.Or, 'eyes', sdw.Comparison.DoesNotEqual, 'blue');
+dynamicWhere
+  .and("name", sdw.Comparison.Equals, "Jacob")
+  .and("age", sdw.Comparison.LessThan, 50)
+  .or("eyes", sdw.Comparison.DoesNotEqual, "blue");
 
-// Returns ['Jacob', 50, 'blue']
+// Returns ["Jacob", 50, "blue"]
 dynamicWhere.getValues()
 
 // Returns: WHERE name = (?) AND (age < (?) OR eyes != (?))
@@ -103,11 +108,12 @@ Generating WHERE clauses snippet without the WHERE keyword
 dynamicWhere.clear();
 
 // Add where clauses
-dynamicWhere.add(sdw.Logic.Or, 'name', sdw.Comparison.Equals, 'Jacob');
-dynamicWhere.add(sdw.Logic.And, 'age', sdw.Comparison.LessThan, 50);
+dynamicWhere
+  .or("name", sdw.Comparison.Equals, "Jacob")
+  .and("age", sdw.Comparison.LessThan, 50);
 
 // Notice that false is being passed into this function
-// Returns: OR name = 'Jacob') AND age < 50
+// Returns: OR name = "Jacob") AND age < 50
 dynamicWhere.getClauses(false)
 ```
 
@@ -118,11 +124,12 @@ Generating WHERE clauses using IS and Like
 dynamicWhere.clear();
 
 // Add where clauses
-dynamicWhere.add(sdw.Logic.And, 'deleted', sdw.Comparison.IsNotNull, true);
-dynamicWhere.add(sdw.Logic.And, 'canFly', sdw.Comparison.IsNull, undefined);
-dynamicWhere.add(sdw.Logic.And, 'name', sdw.Comparison.Like, '%Jacob%');
+dynamicWhere
+  .and("deleted", sdw.Comparison.IsNotNull, true)
+  .and("canFly", sdw.Comparison.IsNull, undefined)
+  .and("name", sdw.Comparison.Like, "%Jacob%");
 
-// Returns: WHERE deleted IS NOT NULL AND name LIKE '%Jacob%'
+// Returns: WHERE deleted IS NOT NULL AND name LIKE "%Jacob%"
 dynamicWhere.getClauses()
 ```
 
@@ -133,53 +140,53 @@ Generating WHERE clauses using IN
 dynamicWhere.clear();
 
 // Add where clauses
-dynamicWhere.add(sdw.Logic.And, 'friends', sdw.Comparison.In, ['Luke', 'Leia', 'James'], ['Leia']);
+dynamicWhere.and("friends", sdw.Comparison.In, ["Luke", "Leia", "James"], ["Leia"]);
 
-// Returns: WHERE friends IN ('Luke', 'James')
+// Returns: WHERE friends IN ("Luke", "James")
 dynamicWhere.getClauses()
 ```
 
 ## Supported operators
 
-| Operator | supported | constant-name        | example                                                     |
-|----------|-----------|----------------------|-------------------------------------------------------------|
-| =        | YES       | `Equals`             | `addFirst('name', sdw.Comparison.Equals, 'Jacob');`         |
-| !=       | YES       | `DoesNotEqual`       | `addFirst('name', sdw.Comparison.DoesNotEqual, 'Jacob');`   |
-| >        | YES       | `GreaterThan`        | `addFirst('age', sdw.Comparison.GreaterThan, 20);`          |
-| >=       | YES       | `GreaterThanOrEqual` | `addFirst('age', sdw.Comparison.GreaterThanOrEqual, 20);`   |
-| <        | YES       | `LessThan`           | `addFirst('age', sdw.Comparison.LessThan, 20);`             |
-| <=       | YES       | `LessThanOrEqual`    | `addFirst('age', sdw.Comparison.LessThanOrEqual, 20);`      |
-| IN       | YES       | `In`                 | `addFirst('friends', sdw.Comparison.In, ['Luke', 'Leia']);` |
-| LIKE     | YES       | `Like`               | `addFirst('friends', sdw.Comparison.Like, '%James%');`      |
-| BETWEEN  | NO        |                      | Use  `LessThan` and `GreaterThan` manually                  |
+| Operator | supported | constant-name        | example                                                |
+|----------|-----------|----------------------|--------------------------------------------------------|
+| =        | YES       | `Equals`             | `and("name", sdw.Comparison.Equals, "Jacob");`         |
+| !=       | YES       | `DoesNotEqual`       | `and("name", sdw.Comparison.DoesNotEqual, "Jacob");`   |
+| >        | YES       | `GreaterThan`        | `and("age", sdw.Comparison.GreaterThan, 20);`          |
+| >=       | YES       | `GreaterThanOrEqual` | `and("age", sdw.Comparison.GreaterThanOrEqual, 20);`   |
+| <        | YES       | `LessThan`           | `and("age", sdw.Comparison.LessThan, 20);`             |
+| <=       | YES       | `LessThanOrEqual`    | `and("age", sdw.Comparison.LessThanOrEqual, 20);`      |
+| IN       | YES       | `In`                 | `and("friends", sdw.Comparison.In, ["Luke", "Leia"]);` |
+| LIKE     | YES       | `Like`               | `and("friends", sdw.Comparison.Like, "%James%");`      |
+| BETWEEN  | NO        |                      | Use  `LessThan` and `GreaterThan` manually             |
 
 Additional support is given for:
 
 | Operator    | constant-name | example                                                 |
 |-------------|---------------|---------------------------------------------------------|
-| IS NULL     | `IsNull`      | `addFirst('deleted', sdw.Comparison.IsNull, true);`     |
-| IS NOT NULL | `IsNotNull`   | `addFirst('deleted', sdw.Comparison.IsNotNull, false);` |
+| IS NULL     | `IsNull`      | `and("deleted", sdw.Comparison.IsNull, true);`     |
+| IS NOT NULL | `IsNotNull`   | `and("deleted", sdw.Comparison.IsNotNull, false);` |
 
 ## Function Overrides
 
 Add additional values to skip in the clause
 
 ```js
-addFirst(field, comparisonOperator, value, skipValues = [])
-add(logicalOperator, field, comparisonOperator, value, skipValues = [])
+and(field, comparisonOperator, value, skipValues = [])
+or(field, comparisonOperator, value, skipValues = [])
 ```
 
 Include leading logic operator and remove WHERE keyword
 
 ```js
-getClauses(startNewWhere = true)
+getClauses(startWithWhere = true)
 ```
 
 Include leading logic operator and remove WHERE keyword
 Define a different placeholder string
 
 ```js
-getClausesWithValuePlaceholders(startNewWhere = true, placeholderString = '(?)')
+getClausesWithValuePlaceholders(startWithWhere = true, placeholderString = "(?)")
 ```
 
 ## Support

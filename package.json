@@ -1,44 +1,44 @@
 {
-  "author": "Jacob Carlson <imjncarlson@gmail.com> (https://github.com/imjncarlson)",
-  "bugs": {
-    "url": "https://github.com/imjncarlson/sql-dynamic-where/issues"
-  },
-  "description": "Dynamically handle multiple WHERE SQL statements",
-  "devDependencies": {
-    "jest": "^29.6.1",
-    "typescript": "^5.1.6"
-  },
-  "homepage": "https://github.com/imjncarlson/sql-dynamic-where#readme",
-  "jest": {
-    "transform": {}
-  },
-  "keywords": [
-    "SQL",
-    "WHERE",
-    "dynamic",
-    "query",
-    "clause",
-    "syntax",
-    "logic",
-    "convert",
-    "operators",
-    "builder",
-    "concatenation",
-    "utility",
-    "string"
-  ],
-  "license": "MIT",
-  "main": "SQLDynamicWhere.js",
-  "name": "sql-dynamic-where",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/imjncarlson/sql-dynamic-where"
-  },
-  "scripts": {
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
-    "test-watch": "npm run test -- --watch",
-    "ts": "tsc -w"
-  },
-  "type": "module",
-  "version": "1.2.1"
+	"author": "Jacob Carlson <imjncarlson@gmail.com> (https://github.com/imjncarlson)",
+	"bugs": {
+		"url": "https://github.com/imjncarlson/sql-dynamic-where/issues"
+	},
+	"description": "Dynamically handle multiple WHERE SQL statements",
+	"devDependencies": {
+		"jest": "^29.6.1",
+		"typescript": "^5.1.6"
+	},
+	"homepage": "https://github.com/imjncarlson/sql-dynamic-where#readme",
+	"jest": {
+		"transform": {}
+	},
+	"keywords": [
+		"SQL",
+		"WHERE",
+		"dynamic",
+		"query",
+		"clause",
+		"syntax",
+		"logic",
+		"convert",
+		"operators",
+		"builder",
+		"concatenation",
+		"utility",
+		"string"
+	],
+	"license": "MIT",
+	"main": "SQLDynamicWhere.js",
+	"name": "sql-dynamic-where",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/imjncarlson/sql-dynamic-where"
+	},
+	"scripts": {
+		"test": "NODE_OPTIONS=--experimental-vm-modules jest",
+		"test-watch": "npm run test -- --watch",
+		"ts": "tsc -w"
+	},
+	"type": "module",
+	"version": "1.2.1"
 }

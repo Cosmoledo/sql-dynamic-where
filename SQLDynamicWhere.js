@@ -34,36 +34,18 @@ export default class SQLDynamicWhere {
     /**
      * Add a new dynamic where clause
      *
-     * @param {string} field - The table field
-     * @param {Comparison} comparisonOperator - The comparison operator of the where clause
-     * @param {Value} value - The value to compare against
-     * @param {ValueRaw[]} skipValues - (Optional) An array of values that should be considered as null
-     */
-    addFirst(field, comparisonOperator, value, skipValues = []) {
-        this.add(Logic.And, field, comparisonOperator, value, skipValues);
-    }
-    /**
-     * Add a new dynamic where clause
-     *
      * @param {Logic} logicalOperator - The logical operator of the where clause
      * @param {string} field - The table field
      * @param {Comparison} comparisonOperator - The comparison operator of the where clause
      * @param {Value} value - The value to compare against
      * @param {ValueRaw[]} skipValues - (Optional) An array of values that should be considered as null
      */
-    add(logicalOperator, field, comparisonOperator, value, skipValues = []) {
-        // If there is no value or it is "null" then do not add it to the array
-        if (!value || typeof (value) === "undefined")
-            return;
-        // Also skip if value is considered as null
-        if (Array.isArray(value)) {
-            value = value.filter(val => !skipValues.includes(val));
-            if (value.length === 0)
-                return;
-        }
-        else if (skipValues.includes(value))
-            return;
-        // Store clause
+    addClause(logicalOperator, field, comparisonOperator, value, skipValues = []) {
+        const valid = this.isValueValid(value, skipValues);
+        if (valid === false)
+            return this;
+        if (Array.isArray(valid))
+            value = valid;
         this.clauses.push({
             comparisonOperator,
             field,
@@ -71,6 +53,46 @@ export default class SQLDynamicWhere {
             skipValues,
             value,
         });
+        return this;
+    }
+    /**
+     * Add a new dynamic where clause using AND
+     *
+     * @param {string} field - The table field
+     * @param {Comparison} comparisonOperator - The comparison operator of the where clause
+     * @param {Value} value - The value to compare against
+     * @param {ValueRaw[]} skipValues - (Optional) An array of values that should be considered as null
+     */
+    and(field, comparisonOperator, value, skipValues = []) {
+        this.addClause(Logic.And, field, comparisonOperator, value, skipValues);
+        return this;
+    }
+    /**
+     * Add a new dynamic where clause using OR
+     *
+     * @param {string} field - The table field
+     * @param {Comparison} comparisonOperator - The comparison operator of the where clause
+     * @param {Value} value - The value to compare against
+     * @param {ValueRaw[]} skipValues - (Optional) An array of values that should be considered as null
+     */
+    or(field, comparisonOperator, value, skipValues = []) {
+        this.addClause(Logic.Or, field, comparisonOperator, value, skipValues);
+        return this;
+    }
+    /**
+     * @param {boolean} startWithWhere - (Optional) Choose whether the string contains the WHERE clause and if the first clause needs a logical operator
+     * @returns A SQL query that contains all the where clauses
+     */
+    getClauses(startWithWhere = true) {
+        return this.generateWhereQuery(startWithWhere, null);
+    }
+    /**
+     * @param {boolean} startWithWhere - (Optional) Choose whether the string contains the WHERE clause and if the first clause needs a logical operator
+     * @param {string} placeholder - (Optional) Choose which string to use as a placeholder for values
+     * @returns A SQL query that contains all the where clauses with placeholders
+     */
+    getClausesWithValuePlaceholders(startWithWhere = true, placeholder = "(?)") {
+        return this.generateWhereQuery(startWithWhere, placeholder);
     }
     /**
      * Return all clauses.
@@ -85,20 +107,28 @@ export default class SQLDynamicWhere {
         return this.clauses.map(clause => clause.value);
     }
     /**
-     * @param {boolean} startNewWhere - (Optional) Choose whether the string contains the WHERE clause and if the first clause needs a logical operator
-     * @returns A SQL query safe string that contains all the where clauses
+     * Clear all clauses
      */
-    getClauses(startNewWhere = true, placeholder = null) {
+    clear() {
+        this.clauses.length = 0;
+        return this;
+    }
+    /**
+     * @param {boolean} startWithWhere - (Optional) Choose whether the string contains the WHERE clause and if the first clause needs a logical operator
+     * @param {string} placeholder - (Optional) Choose which string to use as a placeholder for values
+     * @returns A SQL query that contains all the where clauses
+     */
+    generateWhereQuery(startWithWhere, placeholder) {
         let clauses = "";
         // Add WHERE keyword
-        if (startNewWhere)
+        if (startWithWhere)
             clauses += " WHERE";
         // Add clauses
         this.clauses.forEach((clause, index) => {
             // We also need to insert brackets around OR statements
             const nextClause = this.clauses[index + 1];
             // Skip logical operator on the first clause
-            if (index > 0 || !startNewWhere)
+            if (index > 0 || !startWithWhere)
                 clauses += ` ${clause.logicalOperator}`;
             if (clause.logicalOperator === Logic.And && nextClause && nextClause.logicalOperator === Logic.Or)
                 clauses += " (";
@@ -113,20 +143,6 @@ export default class SQLDynamicWhere {
                 clauses += ")";
         });
         return clauses;
-    }
-    /**
-     * @param {boolean} startNewWhere - (Optional) Choose whether the string contains the WHERE clause and if the first clause needs a logical operator
-     * @param {string} placeholder - (Optional) Choose which string to use as a placeholder for values
-     * @returns A SQL query safe string that contains all the where clauses
-     */
-    getClausesWithValuePlaceholders(startNewWhere = true, placeholder = "(?)") {
-        return this.getClauses(startNewWhere, placeholder);
-    }
-    /**
-     * Clear all clauses
-     */
-    clear() {
-        this.clauses.length = 0;
     }
     /**
      * Formats a value for beeing added to the final query
@@ -145,6 +161,28 @@ export default class SQLDynamicWhere {
         if (typeof (value) === "string")
             return ` \"${value}\"`;
         return ` ${value}`;
+    }
+    /**
+     * Formats a value for beeing added to the final query
+     *
+     * @param {Comparison} comparisonOperator - The comparison operator of the where clause
+     * @param {Value} value - The value to compare against
+     * @param {boolean} isPlaceholder - Indicates if the value is used for a query with placeholders
+     */
+    isValueValid(value, skipValues) {
+        // If there is no value or it is "null" then do not add it to the array
+        if (value !== 0 && (!value || typeof (value) === "undefined"))
+            return false;
+        // Also skip if value is considered as null
+        if (Array.isArray(value)) {
+            const filteredValue = value.filter(val => !skipValues.includes(val));
+            if (filteredValue.length === 0)
+                return false;
+            return filteredValue;
+        }
+        else if (skipValues.includes(value))
+            return false;
+        return true;
     }
 }
 //# sourceMappingURL=SQLDynamicWhere.js.map
