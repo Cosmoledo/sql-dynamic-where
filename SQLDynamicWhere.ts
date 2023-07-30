@@ -16,7 +16,7 @@ enum Logic {
 	Or = "OR",
 }
 
-type ValueRaw = string | number | boolean | null | undefined;
+type ValueRaw = string | number | boolean | Date | null | undefined;
 type Value = ValueRaw | ValueRaw[];
 
 interface Clause {
@@ -203,6 +203,9 @@ export default class SQLDynamicWhere {
 
 		if (typeof (value) === "string")
 			return ` "${value}"`;
+
+		if (value instanceof Date)
+			return ` "${value.toISOString().slice(0, 19).replace("T", " ")}"`;
 
 		return ` ${value}`;
 	}
