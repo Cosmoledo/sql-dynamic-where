@@ -10,6 +10,7 @@
 # Node artifact files
 node_modules/
 build/
+.history/
 
 # Log files
 *.log

@@ -11,13 +11,11 @@ var Comparison;
     Comparison["LessThanOrEqual"] = "<=";
     Comparison["Like"] = "LIKE";
 })(Comparison || (Comparison = {}));
-;
 var Logic;
 (function (Logic) {
     Logic["And"] = "AND";
     Logic["Or"] = "OR";
 })(Logic || (Logic = {}));
-;
 export default class SQLDynamicWhere {
     /**
      * Enumerated type for comparison operators
@@ -107,6 +105,12 @@ export default class SQLDynamicWhere {
         return this.clauses.map(clause => clause.value);
     }
     /**
+     * Return if clause is empty
+     */
+    isEmpty() {
+        return this.clauses.length === 0;
+    }
+    /**
      * Clear all clauses
      */
     clear() {
@@ -159,7 +163,7 @@ export default class SQLDynamicWhere {
         if (isPlaceholder)
             return ` ${value}`;
         if (typeof (value) === "string")
-            return ` \"${value}\"`;
+            return ` "${value}"`;
         return ` ${value}`;
     }
     /**

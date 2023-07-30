@@ -9,12 +9,12 @@ enum Comparison {
 	LessThan = "<",
 	LessThanOrEqual = "<=",
 	Like = "LIKE",
-};
+}
 
 enum Logic {
 	And = "AND",
 	Or = "OR",
-};
+}
 
 type ValueRaw = string | number | boolean | null | undefined;
 type Value = ValueRaw | ValueRaw[];
@@ -130,6 +130,13 @@ export default class SQLDynamicWhere {
 	}
 
 	/**
+	 * Return if clause is empty
+	 */
+	public isEmpty(): boolean {
+		return this.clauses.length === 0;
+	}
+
+	/**
 	 * Clear all clauses
 	 */
 	public clear(): SQLDynamicWhere {
@@ -195,7 +202,7 @@ export default class SQLDynamicWhere {
 			return ` ${value}`;
 
 		if (typeof (value) === "string")
-			return ` \"${value}\"`;
+			return ` "${value}"`;
 
 		return ` ${value}`;
 	}

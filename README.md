@@ -25,6 +25,7 @@ Changes to original [imjncarlson/sql-dynamic-where](https://github.com/imjncarls
   - Logic of parameter `leadingLogicalOperator`/`startWithWhere` was flipped
   - Renamed `addFirst` to `and`, also added `or`
   - Renamed `add` to `addClause`
+  - Added `isEmpty`
   - Added function chaining
 
 TODO/IDEAS:
